@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exaustão de emergência</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #20094d;
+      color: #e8eef2;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    .card {
+      width: min(420px, 92vw);
+      background: #3b1f68;
+      border: 1px solid #edd2f5;
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    .sub { margin: 0 0 16px; color: #8fa3b0; font-size: 14px; }
+
+    /* chaves liga/desliga */
+    .chave {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid #2a3d4a;
+      cursor: pointer;
+    }
+    .chave small { display: block; color: #8fa3b0; }
+    .chave input { position: absolute; opacity: 0; }
+
+    .slider {
+      flex: none;
+      width: 46px;
+      height: 26px;
+      background: #2a3d4a;
+      border-radius: 13px;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .slider::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #8fa3b0;
+      transition: transform 0.2s, background 0.2s;
+    }
+    input:checked + .slider { background: #2c102c; }
+    input:checked + .slider::after { transform: translateX(20px); background: #3fd0e0; }
+    input:focus-visible + .slider { outline: 2px solid #9900ff; outline-offset: 2px; }
+
+    /* saída */
+    .saida {
+      margin-top: 24px;
+      padding: 20px;
+      text-align: center;
+      border-radius: 12px;
+      background: #123a2a;
+      transition: background 0.2s;
+    }
+    .saida.ligada { background: #4a1f17; }
+    .saida svg { width: 80px; height: 80px; }
+    .saida svg ellipse { fill: #5cc48a; }
+    .saida.ligada svg ellipse { fill: #ff7456; }
+    .saida.ligada svg { animation: girar 0.6s linear infinite; }
+    @keyframes girar { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      .saida.ligada svg { animation: none; }
+    }
+
+    #resultado { margin: 8px 0 4px; font-size: 20px; }
+    #motivo { margin: 0; color: #c5d2da; font-size: 14px; }
+    .formula { margin: 18px 0 0; text-align: center; color: #8fa3b0; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Exaustão de emergência</h1>
+    <p class="sub">Rack de servidores crítico</p>
+
+    <label class="chave">
+      <span>A · Sensor de fumaça <small>Ligado = fumaça detectada</small></span>
+      <input type="checkbox" id="A" onchange="atualizar()">
+      <span class="slider"></span>
+    </label>
+
+    <label class="chave">
+      <span>B · Sensor de temperatura <small>Ligado = acima do limite</small></span>
+      <input type="checkbox" id="B" onchange="atualizar()">
+      <span class="slider"></span>
+    </label>
+
+    <label class="chave">
+      <span>C · Chave de manutenção <small>Ligado = técnico no rack</small></span>
+      <input type="checkbox" id="C" onchange="atualizar()">
+      <span class="slider"></span>
+    </label>
+
+    <div class="saida" id="saida" aria-live="polite">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <ellipse cx="50" cy="24" rx="9" ry="20"/>
+        <ellipse cx="76" cy="50" rx="20" ry="9"/>
+        <ellipse cx="50" cy="76" rx="9" ry="20"/>
+        <ellipse cx="24" cy="50" rx="20" ry="9"/>
+        <circle cx="50" cy="50" r="6" fill="#e8eef2"/>
+      </svg>
+      <h2 id="resultado">Exaustão desligada (S = 0)</h2>
+      <p id="motivo">Ambiente normal.</p>
+    </div>
+
+    <p class="formula">S = A + B · não C</p>
+  </div>
+
+  <script>
+    function atualizar() {
+      var A = document.getElementById("A").checked;
+      var B = document.getElementById("B").checked;
+      var C = document.getElementById("C").checked;
+
+      var S = A || (B && !C);
+
+      document.getElementById("saida").classList.toggle("ligada", S);
+      document.getElementById("resultado").textContent =
+        S ? "Exaustão ligada (S = 1)" : "Exaustão desligada (S = 0)";
+
+      var motivo = document.getElementById("motivo");
+      if (A) {
+        motivo.textContent = "Fumaça detectada: prioridade absoluta.";
+      } else if (B && !C) {
+        motivo.textContent = "Superaquecimento sem manutenção.";
+      } else if (B && C) {
+        motivo.textContent = "Calor ignorado: técnico em manutenção.";
+      } else {
+        motivo.textContent = "Ambiente normal.";
+      }
+    }
+  </script>
+
+</body>
+</html>
